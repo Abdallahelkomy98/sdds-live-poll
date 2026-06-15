@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit - SDDS Poll</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#001840,#003080,#001840);min-height:100vh;color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px}
+        .back{align-self:flex-start;color:#b4d2ff;text-decoration:none;font-size:.9em;margin-bottom:20px}
+        .hdr{text-align:center;margin-bottom:30px}
+        .hdr .ic{font-size:3em;margin-bottom:10px}
+        .hdr h1{color:#fdcc33;font-size:1.5em;margin-bottom:8px}
+        .hdr p{color:#b4d2ff;font-size:.95em}
+        .form{width:100%;max-width:500px}
+        .grp{margin-bottom:16px}
+        .grp label{display:block;color:#b4d2ff;font-size:.85em;margin-bottom:6px}
+        .grp input,.grp textarea{width:100%;padding:14px 16px;border:2px solid rgba(253,204,51,.3);border-radius:12px;background:rgba(0,40,100,.6);color:#fff;font-size:1em;outline:none;transition:border-color .3s}
+        .grp input:focus,.grp textarea:focus{border-color:#fdcc33}
+        .grp textarea{min-height:120px;resize:vertical}
+        .grp input::placeholder,.grp textarea::placeholder{color:#6090c0}
+        .btn{width:100%;padding:16px;background:linear-gradient(135deg,#fdcc33,#f0a000);border:none;border-radius:12px;color:#001840;font-size:1.1em;font-weight:700;cursor:pointer;transition:all .3s;margin-top:10px}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(253,204,51,.3)}
+        .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .ok{display:none;text-align:center;padding:40px 20px}
+        .ok .chk{font-size:4em;margin-bottom:16px;color:#4caf50}
+        .ok h2{color:#fdcc33;margin-bottom:8px}
+        .ok p{color:#b4d2ff}
+        .ok .again{margin-top:20px;padding:12px 24px;background:rgba(0,60,120,.6);border:2px solid #fdcc33;border-radius:10px;color:#fdcc33;font-size:.95em;cursor:pointer;text-decoration:none;display:inline-block}
+        .cnt{text-align:center;margin-top:20px;color:#6090c0;font-size:.85em}
+        .err{color:#ff6b6b;text-align:center;margin-top:10px;font-size:.85em;display:none}
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back">&larr; All Questions</a>
+    <div class="hdr"><div class="ic" id="ic"></div><h1 id="tt"></h1><p id="st"></p></div>
+    <div class="form" id="frm">
+        <div class="grp"><label>Your Name (optional)</label><input type="text" id="nm" placeholder="Anonymous"></div>
+        <div class="grp"><label>Your Answer</label><div id="ansWrap"></div></div>
+        <button class="btn" id="sub" onclick="submit()">Submit &rarr;</button>
+        <div class="err" id="err"></div>
+        <div class="cnt" id="cnt"></div>
+    </div>
+    <div class="ok" id="ok">
+        <div class="chk">&#x2714;</div>
+        <h2>Response Submitted!</h2>
+        <p>Your answer is now live on the board</p>
+        <a href="javascript:void(0)" class="again" onclick="reset()">Submit Another</a>
+        <br><br><a href="index.html" class="again">&larr; All Questions</a>
+    </div>
+    <script>
+    const BLOBS = {
+        "one-word":"019ec9e4-e9d0-7b9d-b335-d43155ffb616",
+        "swot-strengths":"019ec9e4-ec77-70c8-8cc7-0ff8471fe841",
+        "swot-weaknesses":"019ec9e4-fcaf-7775-9a34-bb0d97816040",
+        "swot-opportunities":"019ec9e4-ff95-737f-ba0c-4ab2d823981a",
+        "swot-threats":"019ec9e5-0238-79bb-b41f-b38967ea2eee",
+        "future-headlines":"019ec9e5-049e-7412-9a1a-a3412bb9f658",
+        "if-i-were-khaled":"019ec9e5-0710-70af-9aff-b7ae4bbc1ed0",
+        "one-commitment":"019ec9e5-16c7-7705-960e-a88a3c65b42e"
+    };
+    const POLLS = {
+        "one-word":{title:"One Word to Describe the Year",subtitle:"What ONE WORD best describes FY25-26?",icon:"\uD83D\uDCAC",type:"word"},
+        "swot-strengths":{title:"SWOT - Strengths",subtitle:"What are our key STRENGTHS?",icon:"\uD83D\uDCAA",type:"text"},
+        "swot-weaknesses":{title:"SWOT - Weaknesses",subtitle:"What are our key WEAKNESSES?",icon:"\u26A0\uFE0F",type:"text"},
+        "swot-opportunities":{title:"SWOT - Opportunities",subtitle:"What OPPORTUNITIES should we pursue?",icon:"\uD83D\uDE80",type:"text"},
+        "swot-threats":{title:"SWOT - Threats",subtitle:"What THREATS should we watch out for?",icon:"\uD83D\uDD25",type:"text"},
+        "future-headlines":{title:"Future Headlines",subtitle:"Write a headline for MEA Oral Care's success next year",icon:"\uD83D\uDCF0",type:"text"},
+        "if-i-were-khaled":{title:"If I Were Khaled...",subtitle:"What would YOU do differently?",icon:"\uD83E\uDD14",type:"text"},
+        "one-commitment":{title:"One Commitment",subtitle:"What ONE commitment will you make to help us succeed?",icon:"\uD83C\uDFAF",type:"text"}
+    };
+
+    const params = new URLSearchParams(location.search);
+    const pollId = params.get('q') || 'one-word';
+    const poll = POLLS[pollId] || POLLS['one-word'];
+    const blobId = BLOBS[pollId];
+    const API = `https://jsonblob.com/api/jsonBlob/${blobId}`;
+
+    document.getElementById('ic').textContent = poll.icon;
+    document.getElementById('tt').textContent = poll.title;
+    document.getElementById('st').textContent = poll.subtitle;
+    document.title = poll.title + ' - SDDS Poll';
+
+    const wrap = document.getElementById('ansWrap');
+    if(poll.type==='word'){
+        wrap.innerHTML='<input type="text" id="ans" placeholder="Type one word..." maxlength="30" autofocus>';
+    } else {
+        wrap.innerHTML='<textarea id="ans" placeholder="Share your thoughts..." autofocus></textarea>';
+    }
+
+    // Load current count
+    fetch(API).then(r=>r.json()).then(d=>{
+        const c = (d.responses||[]).length;
+        if(c>0) document.getElementById('cnt').textContent = c+' response'+(c>1?'s':'')+' so far';
+    }).catch(()=>{});
+
+    async function submit(){
+        const ans = document.getElementById('ans').value.trim();
+        const nm = document.getElementById('nm').value.trim()||'Anonymous';
+        const errEl = document.getElementById('err');
+        errEl.style.display='none';
+        if(!ans){document.getElementById('ans').style.borderColor='#ff4444';return;}
+        
+        document.getElementById('sub').disabled=true;
+        document.getElementById('sub').textContent='Submitting...';
+        
+        try{
+            // Get current data
+            const res = await fetch(API);
+            const data = await res.json();
+            const responses = data.responses || [];
+            responses.push({name:nm, answer:ans, time:new Date().toISOString()});
+            
+            // Update blob
+            await fetch(API, {
+                method:'PUT',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({poll:pollId, responses:responses})
+            });
+            
+            document.getElementById('frm').style.display='none';
+            document.getElementById('ok').style.display='block';
+        } catch(e) {
+            errEl.textContent='Failed to submit. Please try again.';
+            errEl.style.display='block';
+            document.getElementById('sub').disabled=false;
+            document.getElementById('sub').textContent='Submit \u2192';
+        }
+    }
+
+    function reset(){
+        document.getElementById('frm').style.display='block';
+        document.getElementById('ok').style.display='none';
+        document.getElementById('ans').value='';
+        document.getElementById('sub').disabled=false;
+        document.getElementById('sub').textContent='Submit \u2192';
+    }
+
+    document.addEventListener('keypress',e=>{if(e.key==='Enter'&&poll.type==='word')submit();});
+    </script>
+</body>
+</html>
