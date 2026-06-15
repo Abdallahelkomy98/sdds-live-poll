@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEA Oral Care - SDDS Live Poll</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #001840 0%, #003080 50%, #001840 100%);
+            min-height: 100vh; color: white; padding: 20px;
+        }
+        .header { text-align: center; padding: 30px 0; }
+        .header h1 { font-size: 1.8em; color: #fdcc33; margin-bottom: 8px; }
+        .header p { color: #b4d2ff; font-size: 0.95em; }
+        .polls-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px; max-width: 800px; margin: 0 auto; padding: 20px 0;
+        }
+        .poll-card {
+            background: rgba(0, 60, 120, 0.6); border: 2px solid rgba(253, 204, 51, 0.3);
+            border-radius: 16px; padding: 24px; text-align: center;
+            cursor: pointer; transition: all 0.3s ease;
+            text-decoration: none; color: white; display: block;
+        }
+        .poll-card:hover { border-color: #fdcc33; transform: translateY(-3px); box-shadow: 0 8px 25px rgba(253,204,51,0.2); }
+        .poll-card .icon { font-size: 2.5em; margin-bottom: 12px; }
+        .poll-card h3 { color: #fdcc33; font-size: 1.1em; margin-bottom: 6px; }
+        .poll-card p { color: #b4d2ff; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>&#x1F9B7; MEA Oral Care</h1>
+        <p>SDDS Preparation FY26-27 | Live Polling</p>
+    </div>
+    <div class="polls-grid" id="grid"></div>
+    <script>
+        const polls = [
+            {id:"one-word", icon:"\uD83D\uDCAC", title:"One Word", desc:"One word to describe the year"},
+            {id:"swot-strengths", icon:"\uD83D\uDCAA", title:"SWOT - Strengths", desc:"What are our key strengths?"},
+            {id:"swot-weaknesses", icon:"\u26A0\uFE0F", title:"SWOT - Weaknesses", desc:"What are our key weaknesses?"},
+            {id:"swot-opportunities", icon:"\uD83D\uDE80", title:"SWOT - Opportunities", desc:"Opportunities to pursue"},
+            {id:"swot-threats", icon:"\uD83D\uDD25", title:"SWOT - Threats", desc:"Threats to watch out for"},
+            {id:"future-headlines", icon:"\uD83D\uDCF0", title:"Future Headlines", desc:"Write a headline for next year"},
+            {id:"if-i-were-khaled", icon:"\uD83E\uDD14", title:"If I Were Khaled...", desc:"What would you do differently?"},
+            {id:"one-commitment", icon:"\uD83C\uDFAF", title:"One Commitment", desc:"One commitment to help us succeed"}
+        ];
+        const grid = document.getElementById('grid');
+        polls.forEach(p => {
+            grid.innerHTML += `<a href="poll.html?q=${p.id}" class="poll-card"><div class="icon">${p.icon}</div><h3>${p.title}</h3><p>${p.desc}</p></a>`;
+        });
+    </script>
+</body>
+</html>
